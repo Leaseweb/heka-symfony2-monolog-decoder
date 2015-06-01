@@ -1,4 +1,9 @@
 -- http://rsyslog-5-8-6-doc.neocities.org/rsyslog_conf_templates.html
+-- https://github.com/Seldaek/monolog/blob/master/doc/usage.md
+--
+-- context is filled like this: $logger->addInfo('Adding a new user', array('username' => 'Seldaek'));
+--
+-- extra is filled using monolog processor plugins
 --
 --
 -- syslog part                                   monolog part
@@ -22,9 +27,9 @@
 --                                                                                   |  |                         |
 --                                           the actual message logged with monolog -+  |                         |
 --                                                                                      |                         |
---                                    the monolog `extra` field is a valid json object -+                         |
+--                                  the monolog `context` field is a valid json object -+                         |
 --                                                                                                                |
---                                                                  the monolog `context` is a valid json object -+
+--                                                                    the monolog `extra` is a valid json object -+
 require "string"
 require "cjson"
 
@@ -99,7 +104,7 @@ function process_message ()
 
     -- Parse symfony2 style monolog messages.
     local regex = "^(%a+)%.(%a+): (.+) ([{%[].*[}%]]) ([{%[].*[}%]])$"
-    _, _, msg.Channel, fields.levelname, msg.Payload, context, extra = string.find(fields.msg, regex)
+    _, _, fields.channel, fields.levelname, msg.Payload, context, extra = string.find(fields.msg, regex)
 
     fields.msg = nil
 
@@ -108,7 +113,7 @@ function process_message ()
     local json_extra = cjson.decode(extra)
 
     -- Merge the key/value pairs into the message fields.
-    msg.Fields = table_concat(fields, json_context, json_extra)
+    msg.Fields = table_concat(fields, json_extra, json_context)
 
     if not pcall(inject_message, msg) then return -1 end
 
