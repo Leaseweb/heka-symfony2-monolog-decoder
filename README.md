@@ -5,17 +5,79 @@ A heka decode written in lua for parsing symfony2 formatted monolog messages
 
 ## installation
 
-TODO
-
-
-## configuration
-
-TODO
+You can place the `lua` decoders anywhere as long as `heka` can read them.
 
 
 ## usage
 
-TODO
+To use the plain `Symfony2 Monolog Decoder` put the following in your
+`/etc/hekad.toml`:
+
+    $ cat /etc/hekad.toml
+    [Symfony2MonologFileInput]
+    type = "LogstreamerInput"
+    log_directory = "/var/www/app/logs"
+    file_match = 'prod\.log'
+    decoder = "Symfony2MonologDecoder"
+
+    [Symfony2MonologDecoder]
+    type = "SandboxDecoder"
+    filename = "/etc/symfony2_decoder.lua"
+
+
+Adjust `log_directory` and `filename` according to your setup.
+
+
+To use the `Syslog Symfony2 Monolog Decoder` you need to configure your
+symfony2 application to log to syslog by changing `config_prod.yml`:
+
+    $ cat app/config/config_prod.yml
+    # ...
+    monolog:
+        handlers:
+            main:
+                type: syslog
+                ident: myapplication
+    # ...
+
+
+And configure `rsyslog` to send all logs with application name `myapplication`
+to a seperate file:
+
+    $ cat /etc/rsyslog.d/90-myapplication.conf
+    #TODO 
+
+
+Now you can configure `heka` to watch this file:
+
+    $ cat /etc/hekad.toml
+    [SyslogSymfony2MonologFileInput]
+    type = "LogstreamerInput"
+    log_directory = "/var/log"
+    file_match = 'bmpapi\.log'
+    decoder = "SyslogSymfony2MonologDecoder"
+
+    [SyslogSymfony2MonologDecoder]
+    type = "SandboxDecoder"
+    filename = "/etc/syslog_symfony2_decoder.lua"
+
+    [SyslogSymfony2MonologDecoder.config]
+    type = "RSYSLOG_TraditionalForwardFormat"
+    template = '%TIMESTAMP% %HOSTNAME% %syslogtag:1:32%%msg:::sp-if-no-1st-sp%%msg%'
+    tz = "Europe/Amsterdam"
+
+
+For debugging purposes you can use the build in `RstEncoder` to see how the
+fields get serialized:
+
+    $ cat /etc/hekad.toml
+    # ...
+    [RstEncoder]
+
+    [LogOutput]
+    message_matcher = "TRUE"
+    encoder = "RstEncoder"
+    # ...
 
 
 ## contribute
