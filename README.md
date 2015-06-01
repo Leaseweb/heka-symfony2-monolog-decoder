@@ -29,4 +29,4 @@ TODO
 
 ## license
 
-apache 2.0 -- see https://github.com/LeaseWeb/heka-symfony2-monolog-decoder/blob/master/LICENSE for more details.
+apache 2.0 -- see [LICENSE](https://github.com/LeaseWeb/heka-symfony2-monolog-decoder/blob/master/LICENSE) for more details.
