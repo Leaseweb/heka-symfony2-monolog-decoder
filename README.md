@@ -10,6 +10,14 @@ You can place the `lua` decoders anywhere as long as `heka` can read them.
 
 ## usage
 
+There are two decoders available. One for decoding log messages in your
+`app/logs` directory and another one that decodes monolog messages that were
+logged to syslog (useful if you configured your Symfony 2 application to log
+to syslog).
+
+
+### usage: monolog decoder
+
 To use the plain `Symfony2 Monolog Decoder` put the following in your
 `/etc/hekad.toml`:
 
@@ -28,6 +36,8 @@ To use the plain `Symfony2 Monolog Decoder` put the following in your
 Adjust `log_directory` and `filename` according to your setup.
 
 
+### usage: syslog monolog decoder
+
 To use the `Syslog Symfony2 Monolog Decoder` you need to configure your
 symfony2 application to log to syslog by changing `config_prod.yml`:
 
@@ -45,8 +55,10 @@ And configure `rsyslog` to send all logs with application name `myapplication`
 to a seperate file:
 
     $ cat /etc/rsyslog.d/90-myapplication.conf
-    #TODO 
+    if $programname == 'myapplication' then /var/log/myapi.log
 
+
+Where `programname` and `ident` are the same string.
 
 Now you can configure `heka` to watch this file:
 
@@ -67,7 +79,7 @@ Now you can configure `heka` to watch this file:
     tz = "Europe/Amsterdam"
 
 
-For debugging purposes you can use the build in `RstEncoder` to see how the
+For debugging purposes you can use the build-in `RstEncoder` to see how the
 fields get serialized:
 
     $ cat /etc/hekad.toml
